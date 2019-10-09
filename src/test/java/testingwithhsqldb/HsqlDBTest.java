@@ -18,7 +18,7 @@ public class HsqlDBTest {
 	private static DataSource myDataSource;
 	private static Connection myConnection ;
 	
-	private DAO myObject;
+	private DAO DAO;
 	
 	@Before
 	public  void setUp() throws IOException, SqlToolError, SQLException {
@@ -30,7 +30,7 @@ public class HsqlDBTest {
 		// On y met des données
 		executeSQLScript(myConnection, "bigtestdata.sql");		
 
-            	myObject = new DAO(myDataSource);
+            	DAO = new DAO(myDataSource);
 	}
 	
 	private void executeSQLScript(Connection connexion, String filename)  throws IOException, SqlToolError, SQLException {
@@ -46,23 +46,30 @@ public class HsqlDBTest {
 	@After
 	public void tearDown() throws IOException, SqlToolError, SQLException {
 		myConnection.close(); // La base de données de test est détruite ici
-             	myObject = null; // Pas vraiment utile
+             	DAO = null; // Pas vraiment utile
 
 	}
 
 	@Test
 	public void findExistingCustomer() throws SQLException {
-		String name = myObject.nameOfCustomer(0);
+		String name = DAO.nameOfCustomer(0);
 		assertNotNull("Customer exists, name should not be null", name);
 		assertEquals("Bad name found !", "Steel", name);
 	}
 
 	@Test
 	public void nonExistingCustomerReturnsNull() throws SQLException {
-		String name = myObject.nameOfCustomer(-1);
+		String name = DAO.nameOfCustomer(-1);
 		assertNull("name should be null, customer does not exist !", name);
 	}
 
+        @Test
+        public void ajouterUnProduit() throws SQLException {
+            Produit produit = new Produit(355, "test", 30.4f);
+            DAO.ajoutProduit(produit);
+            assertEquals(produit, DAO.trouverProduit(355));
+        }
+        
 	public static DataSource getDataSource() {
 		org.hsqldb.jdbc.JDBCDataSource ds = new org.hsqldb.jdbc.JDBCDataSource();
 		ds.setDatabase("jdbc:hsqldb:mem:testcase;shutdown=true");
